@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Denoising App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fafafa;
+            text-align: center;
+        }
+
+        .container {
+            background-color: rgba(249, 246, 243, 0.4);
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #605f5f;
+            border-radius: 10px;
+        }
+
+        .header {
+            background-color: #030403;
+            color: #faf4f4;
+            padding: 10px;
+            text-align: center;
+            border-bottom:thick double rgb(114, 113, 113)
+        }
+        .form {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .file-input-container {
+            margin-bottom: 20px;
+        }
+
+        .form button {
+            background-color: #4910db;
+            color: #fff;
+            padding: 10px 20px;
+            border: thick double #32a1ce;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form button:hover {
+            background-color: #1cb821;
+        }
+        .audio-container {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .audio-element {
+            width: 75%;
+            color:rgb(19, 9, 9);
+            margin-bottom: 20px;
+        }
+
+        /* Responsive Design */
+        @media only screen and (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .container {
+                margin: 10px auto;
+            }
+            .form button {
+                padding: 5px 10px;
+            }
+        }
+
+        #background-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <video id="background-video" autoplay loop muted>
+        <source src="C:\Users\santosh\Desktop\PDFS\v.mp4" type="video/mp4">
+        Your browser does not support the video element.
+    </video>
+    <div class="container">
+        <div class="header">
+            <h1>Speech Denoising App</h1>
+        </div>
+        <form class="form">
+            <div class="file-input-container">
+                <input type="file" id="fileInput" accept=".mp3">
+            </div>
+            <button id="upload-btn">Upload and Denoise</button>
+        </form>
+        <div class="audio-container">
+            <audio class="audio-element" id="original-audio-element" controls>
+                <source id="original-audio-source" src="" type="audio/mp3">
+                Your browser does not support the audio element.
+            </audio>
+            <audio class="audio-element" id="denoised-audio-element" controls>
+                <source id="denoised-audio-source" src="" type="audio/mp3">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('upload-btn');
+        const originalAudioElement = document.getElementById('original-audio-element');
+        const originalAudioSource = document.getElementById('original-audio-source');
+        const denoisedAudioElement = document.getElementById('denoised-audio-element');
+        const denoisedAudioSource = document.getElementById('denoised-audio-source');
+
+        uploadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            const originalAudioURL = URL.createObjectURL(file);
+            originalAudioSource.src = originalAudioURL;
+            originalAudioElement.load();
+            originalAudioElement.play();
+
+            // Display a loading message to the user
+            const loadingMessage = document.createElement('p');
+            loadingMessage.textContent = 'Denoising audio...';
+            document.body.appendChild(loadingMessage);
+
+            // Send the file to the back-end for denoising
+            fetch('/denoise', {
+                method: 'POST',
+                body: file,
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(Error denoising audio: ${response.statusText});
+                }
+                return response.blob();
+            })
+            .then((denoisedAudio) => {
+                denoisedAudioSource.src = URL.createObjectURL(denoisedAudio);
+                denoisedAudioElement.load();
+                denoisedAudioElement.play();
+                // Remove the loading message
+                loadingMessage.remove();
+            })
+            .catch((error) => {
+                console.error(error);
+                // Display an error message to the user
+                const errorMessage = document.createElement('p');
+                errorMessage.textContent = Error denoising audio: ${error.message};
+                document.body.appendChild(errorMessage);
+            });
+        });
+    </script>
+</body>
+</html>
